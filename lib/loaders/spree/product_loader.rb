@@ -48,6 +48,7 @@ module DataShift
                                          variant_cost_price
                                          variant_price
                                          variant_images
+                                         variant_weight
         }
       end
 

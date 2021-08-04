@@ -65,7 +65,7 @@ module DataShift
 
             if(record.variants.size == values.size)
               record.variants.each_with_index {|v, i| v.price = values[i].to_f }
-              record.save
+              record.variants.each { |v| v.save }
             else
               puts "WARNING: Price entries did not match number of Variants - None Set"
             end
@@ -80,7 +80,7 @@ module DataShift
 
             if(product_load_object.variants.size == values.size)
               product_load_object.variants.each_with_index {|v, i| v.cost_price = values[i].to_f }
-              product_load_object.save
+              product_load_object.variants.each { |v| v.save }
             else
               puts "WARNING: Cost Price entries did not match number of Variants - None Set"
             end
@@ -94,10 +94,25 @@ module DataShift
             values = data.to_s.split(multi_assoc_delim)
 
             if(product_load_object.variants.size == values.size)
-              product_load_object.variants.each_with_index {|v, i| v.sku = values[i].to_s }
-              product_load_object.save
+              product_load_object.variants.each_with_index {|v, i| v.sku = values[i].to_s; v.track_inventory = false }
+              product_load_object.variants.each { |v| v.save }
             else
               puts "WARNING: SKU entries did not match number of Variants - None Set"
+            end
+          end
+
+        elsif(method_binding.operator?('variant_weight') && product_load_object.variants.size > 0)
+
+          if(data.to_s.include?(multi_assoc_delim))
+
+            # Check if we processed Option Types and assign  per option
+            values = data.to_s.split(multi_assoc_delim)
+
+            if(product_load_object.variants.size == values.size)
+              product_load_object.variants.each_with_index {|v, i| v.weight = values[i].to_s }
+              product_load_object.variants.each { |v| v.save }
+            else
+              puts "WARNING: Weight entries did not match number of Variants - None Set"
             end
           end
 
@@ -315,7 +330,7 @@ module DataShift
 
       # Nested tree structure support ..
       # TAXON FORMAT
-      # name|name>child>child|name
+      # name:old_category_id|name:old_category_id>child:old_category_id>child:old_category_id|name:old_category_id
 
       def add_taxons
         # TODO smart column ordering to ensure always valid by time we get to associations
@@ -328,24 +343,35 @@ module DataShift
           # Each chain can contain either a single Taxon, or the tree like structure parent>child>child
           name_list = chain.split(/\s*>\s*/)
 
-          parent_name = name_list.shift
+          parent_name_old_cateogry_id = name_list.shift.split(":")
+          parent_name = parent_name_old_cateogry_id[0]
+          parent_old_category_id = parent_name_old_cateogry_id[1]
 
-          parent_taxonomy = taxonomy_klass.where(:name => parent_name).first_or_create
+          parent_taxonomy = taxonomy_klass.where(:name => parent_name, :old_category_id => parent_old_category_id).first_or_create
 
-          raise DataShift::DataProcessingError.new("Could not find or create Taxonomy #{parent_name}") unless parent_taxonomy
+          raise DataShift::DataProcessingError.new("Could not find or create Taxonomy #{parent_name}:#{parent_old_category_id}") unless parent_taxonomy
 
           parent = parent_taxonomy.root
 
           # Add the Taxons to Taxonomy from tree structure parent>child>child
-          taxons = name_list.collect do |name|
+          taxons = name_list.collect do |name_old_cateogry_id_pair|
 
             begin
-              taxon = taxon_klass.where(:name => name, :parent_id => parent.id, :taxonomy_id => parent_taxonomy.id).first_or_create
+              name_old_cateogry_id = name_old_cateogry_id_pair.split(":")
+              name = name_old_cateogry_id[0]
+              old_category_id = name_old_cateogry_id[1]
+
+              # Use this to create taxons
+              # taxon = taxon_klass.where(:name => name, :old_category_id => old_category_id, :parent_id => parent.id, :taxonomy_id => parent_taxonomy.id).first_or_create
+              
+              taxon = taxon_klass.where(:name => name, :old_category_id => old_category_id, :parent_id => parent.id, :taxonomy_id => parent_taxonomy.id).first_or_create
+              taxon.set_permalink
+              taxon.save!
 
               # pre Rails 4 -  taxon = taxon_klass.find_or_create_by_name_and_parent_id_and_taxonomy_id(name, parent && parent.id, parent_taxonomy.id)
 
               unless(taxon)
-                logger.warn("Missing Taxon - could not find or create #{name} for parent #{parent_taxonomy.inspect}")
+                logger.warn("Missing Taxon - could not find or create #{name_old_cateogry_id} for parent #{parent_taxonomy.inspect}")
               end
             rescue => e
               logger.error(e.inspect)
@@ -357,7 +383,8 @@ module DataShift
             taxon
           end
 
-          taxons << parent_taxonomy.root
+          # Do not add taxonomy root
+          # taxons << parent_taxonomy.root
 
           unique_list = taxons.compact.uniq - (@product_load_object.taxons || [])
 
