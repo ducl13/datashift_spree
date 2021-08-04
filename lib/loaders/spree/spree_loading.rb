@@ -164,7 +164,7 @@ module DataShift
           path = File.join(Configuration.call.image_path_prefix, path) if(Configuration.call.image_path_prefix)
 
           begin
-            attachment = create_attachment(Spree::Image, path, nil, nil, :alt => alt_text)
+            attachment = create_attachment(Spree::Image, owner, path, nil, nil, :alt => alt_text)
           rescue => e
             logger.error(e.message)
             logger.error("Failed to create Image from URL #{uri}")
