@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description = "Comprehensive Excel/CSV import/export for Spree, Products,Images, any model with full associations"
   s.license     = 'MIT'
 
-  s.required_ruby_version = '~> 2.0'
+  s.required_ruby_version = '~> 3.0'
 
   s.files = Dir['{lib}/**/*', 'LICENSE.md', 'README.md', 'datashift_spree.thor']
   s.require_paths = ['lib']
