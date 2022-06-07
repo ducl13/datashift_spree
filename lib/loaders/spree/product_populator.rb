@@ -38,6 +38,10 @@ module DataShift
 
           add_options_variants
 
+        elsif(method_binding.operator?('master_price') )
+
+          product_load_object.price = value.to_f
+        
         elsif(method_binding.operator?('taxons'))
 
           add_taxons
@@ -124,6 +128,10 @@ module DataShift
 
           add_variants_stock(data)
 
+        elsif(method_binding.operator?('products_stores'))
+
+          products_stores
+
         else
           super(method_binding, product_load_object, data) if(data)
         end
@@ -131,6 +139,17 @@ module DataShift
       end
 
       private
+
+      def products_stores()
+        store = Spree::Store.where(:name => value).first
+
+        if (store)
+          product_load_object.stores << store
+        else
+          logger.error "Cannot find store ['#{value}']"
+          exit
+        end
+      end
 
       # Special case for OptionTypes as it's two stage process
       # First add the possible option_types to Product, then we are able
