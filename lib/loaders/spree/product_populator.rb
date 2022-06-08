@@ -71,7 +71,7 @@ module DataShift
               record.variants.each_with_index {|v, i| v.price = values[i].to_f }
               record.variants.each { |v| v.save }
             else
-              puts "WARNING: Price entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id
+              puts "WARNING: Price entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id.to_s
             end
           end
 
@@ -86,7 +86,7 @@ module DataShift
               product_load_object.variants.each_with_index {|v, i| v.cost_price = values[i].to_f }
               product_load_object.variants.each { |v| v.save }
             else
-              puts "WARNING: Cost Price entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id
+              puts "WARNING: Cost Price entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id.to_s
             end
           end
 
@@ -101,7 +101,7 @@ module DataShift
               product_load_object.variants.each_with_index {|v, i| v.sku = values[i].to_s; v.track_inventory = false }
               product_load_object.variants.each { |v| v.save }
             else
-              puts "WARNING: SKU entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id
+              puts "WARNING: SKU entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id.to_s
             end
           end
 
@@ -116,7 +116,7 @@ module DataShift
               product_load_object.variants.each_with_index {|v, i| v.weight = values[i].to_s }
               product_load_object.variants.each { |v| v.save }
             else
-              puts "WARNING: Weight entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id
+              puts "WARNING: Weight entries did not match number of Variants - None Set" + " old_product_id = " + product_load_object.old_product_id.to_s
             end
           end
 
