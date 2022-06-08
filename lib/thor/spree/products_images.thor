@@ -76,9 +76,9 @@ module DatashiftSpree
 
       require 'image_loader'
 
-      loader = DataShift::SpreeEcom::ImageLoader.new(nil, options)
+      loader = DataShift::SpreeEcom::ImageLoader.new()
 
-      loader.run( options[:input], options )
+      loader.run( options[:input] )
     end
 
 
