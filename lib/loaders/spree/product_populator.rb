@@ -42,6 +42,10 @@ module DataShift
 
           product_load_object.price = value.to_f
         
+        elsif(method_binding.operator?('master_weight') )
+
+          product_load_object.weight = value.to_f
+        
         elsif(method_binding.operator?('taxons'))
 
           add_taxons

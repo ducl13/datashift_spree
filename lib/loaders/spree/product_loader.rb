@@ -50,6 +50,7 @@ module DataShift
                                          variant_images
                                          variant_weight
                                          master_price
+                                         master_weight
                                          products_stores
         }
       end
